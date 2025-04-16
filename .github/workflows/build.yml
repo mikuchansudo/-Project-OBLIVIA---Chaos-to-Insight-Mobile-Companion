@@ -16,16 +16,6 @@ jobs:
           git clone https://github.com/${{ github.repository }}.git .
           git checkout ${{ github.ref_name }}
       
-      # Debug - examine current files
-      - name: Debug files
-        run: |
-          echo "=== Repository files ==="
-          ls -la
-          echo "=== Gradle wrapper directory ==="
-          ls -la ./gradle/wrapper/ || echo "Wrapper directory not found"
-          echo "=== Examine gradlew script ==="
-          cat ./gradlew || echo "No gradlew file found"
-      
       # Setup Java manually
       - name: Set up JDK
         run: |
@@ -33,34 +23,46 @@ jobs:
           sudo apt-get install -y openjdk-11-jdk
           java -version
       
-      # Create a new gradlew script that bypasses the jar issue
-      - name: Create new gradlew script
+      # Create a new gradlew script
+      - name: Create build script
         run: |
-          # Install Gradle
           sudo apt-get install -y gradle
-          
-          # Create and use a new script that uses the system Gradle
           echo '#!/bin/bash' > ./build-with-gradle.sh
           echo 'gradle "$@"' >> ./build-with-gradle.sh
           chmod +x ./build-with-gradle.sh
-          
-          # Display the script
-          echo "=== New build script ==="
-          cat ./build-with-gradle.sh
       
-      # Build the APK with the new script
-      - name: Build APK
+      # List available Gradle tasks
+      - name: List available tasks
         run: |
-          ./build-with-gradle.sh assembleRelease --info
+          ./build-with-gradle.sh tasks
+          echo "=== Project structure ==="
+          find . -name "*.gradle" | sort
+          echo "=== Build.gradle content ==="
+          cat build.gradle || echo "No build.gradle found"
+      
+      # Try different build tasks
+      - name: Build project
+        run: |
+          # Try standard Android task first
+          ./build-with-gradle.sh build --info || echo "Build task failed, trying other tasks"
+          
+          # If that fails, try other common tasks
+          if [ $? -ne 0 ]; then
+            echo "Trying jar task..."
+            ./build-with-gradle.sh jar --info || echo "Jar task failed"
+          fi
         env:
           API_KEY: ${{ secrets.API_KEY }}
           
-      # Debug - list all APK files
-      - name: Find APK files
-        if: success() || failure()
+      # Debug - list all output files
+      - name: Find output files
         run: |
           echo "=== APK files ==="
           find . -name "*.apk" || echo "No APK files found"
+          echo "=== JAR files ==="
+          find . -name "*.jar" -not -path "*/gradle/*" || echo "No JAR files found"
+          echo "=== All build outputs ==="
+          find . -path "*/build/*" -type f -name "*.jar" -o -name "*.apk" -o -name "*.aar" || echo "No build outputs found"
           
       # Create a release tag (if on main branch)
       - name: Create Release Tag
