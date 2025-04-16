@@ -5,28 +5,24 @@ workflows:
     instance_type: mac_mini
     environment:
       flutter: stable
-      node: latest
       java: openjdk11
-    triggers:
-      - push
-      - pull_request
-    actions:
+    # This is where we define the steps
+    steps:
       - title: Install Dependencies
         script: |
-          # Install required dependencies
           flutter pub get
+          
       - title: Build APK
         script: |
-          # Build the APK using Flutter and Android
           flutter build apk --release
+
       - title: Upload APK
         script: |
-          # Upload APK after building
           cp build/app/outputs/flutter-apk/app-release.apk $CM_BUILD_DIR/app-release.apk
           curl -F "file=@$CM_BUILD_DIR/app-release.apk" https://your-upload-url.com
+
+    # Define your environment variables for secure keys
     environment_variables:
-      # Add environment variables for secure API key, keystore, etc.
-      # Store sensitive information like API keys, keystores, etc. as environment variables.
       - name: API_KEY
         value: "your-api-key"
       - name: KEYSTORE_FILE
