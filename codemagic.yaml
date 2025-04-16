@@ -1,20 +1,22 @@
 workflows:
   android:
     name: Android Workflow
-    max_build_duration: 60
+    max_build_duration: 120
     instance_type: mac_mini
     environment:
       flutter: stable
       java: openjdk11
+      groups:
+        - MY_SECRET_GROUP
       vars:
-        # Define your environment variables for secure keys here
-        API_KEY: "your-api-key"
-        KEYSTORE_FILE: "/path/to/your/keystore/file"
-        KEYSTORE_PASSWORD: "your-keystore-password"
-        KEY_ALIAS: "your-key-alias"
-        KEY_PASSWORD: "your-key-password"
+        API_KEY: 'your-api-key-here'
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
     scripts:
-      # This is where we define the steps
       - name: Install Dependencies
         script: |
           flutter pub get
@@ -27,3 +29,7 @@ workflows:
         script: |
           cp build/app/outputs/flutter-apk/app-release.apk $CM_BUILD_DIR/app-release.apk
           curl -F "file=@$CM_BUILD_DIR/app-release.apk" https://your-upload-url.com
+    cache:
+      cache_paths:
+        - ~/.pub-cache
+        - build/
