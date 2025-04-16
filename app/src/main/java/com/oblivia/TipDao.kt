@@ -1,4 +1,3 @@
-```kotlin
 package com.oblivia
 
 import androidx.room.Dao
@@ -13,4 +12,3 @@ interface TipDao {
     @Query("SELECT * FROM tips ORDER BY id DESC")
     suspend fun getAllTips(): List<Tip>
 }
-```
