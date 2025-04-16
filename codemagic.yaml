@@ -13,15 +13,15 @@ workflows:
           value: release  # Build mode (set to 'release' for production)
     
     # Steps to execute during the build process
-    steps:
+    scripts:
       - name: Install dependencies
-        run: flutter pub get
+        script: flutter pub get
 
       - name: Clean project
-        run: flutter clean
+        script: flutter clean
 
       - name: Build APK
-        run: flutter build apk --release  # Build the release APK
+        script: flutter build apk --release  # Build the release APK
 
     # Android keystore configuration for signing
     android:
