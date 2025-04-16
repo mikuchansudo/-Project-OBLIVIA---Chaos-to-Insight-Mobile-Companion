@@ -1,31 +1,37 @@
 workflows:
   flutter_build:
     name: Flutter Build
-    max_build_duration: 60
+    max_build_duration: 60  # Maximum build time in minutes
+
+    # Environment configuration
     environment:
-      flutter: stable  # Use stable Flutter SDK
+      flutter: stable  # Use stable version of Flutter SDK
       vars:
         - name: API_KEY
-          value: ${{ secrets.API_KEY }}  # Secret OpenAI API key for access
+          value: ${{ secrets.API_KEY }}  # OpenAI API key (replace with your secret)
         - name: FLUTTER_BUILD_MODE
-          value: release  # Build mode (release or debug)
-
+          value: release  # Build mode (set to 'release' for production)
+    
+    # Steps to execute during the build process
     steps:
       - name: Install dependencies
         run: flutter pub get
-      - name: Clean the project
-        run: flutter clean
-      - name: Build APK
-        run: flutter build apk --release
 
-    # The keystore setup should be in the android section at the root level, not inside flutter_build
+      - name: Clean project
+        run: flutter clean
+
+      - name: Build APK
+        run: flutter build apk --release  # Build the release APK
+
+    # Android keystore configuration for signing
     android:
       signing:
         keystore:
-          file: ${{ secrets.KEYSTORE_FILE }}  # Keystore file uploaded as a secret in Codemagic
+          file: ${{ secrets.KEYSTORE_FILE }}  # Keystore file (uploaded in secrets)
           password: ${{ secrets.KEYSTORE_PASSWORD }}  # Keystore password
-          alias: ${{ secrets.KEY_ALIAS }}  # Alias for the key inside the keystore
-          key_password: ${{ secrets.KEY_PASSWORD }}  # Key password for the alias inside the keystore
+          alias: ${{ secrets.KEY_ALIAS }}  # Keystore alias
+          key_password: ${{ secrets.KEY_PASSWORD }}  # Password for the key alias in the keystore
 
+    # Define output files (Artifacts) to save after the build completes
     artifacts:
-      - build/app/outputs/flutter-apk/app-release.apk  # Path to the output APK file
+      - build/app/outputs/flutter-apk/app-release.apk  # Path to the APK file
