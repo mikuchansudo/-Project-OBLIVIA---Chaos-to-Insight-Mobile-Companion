@@ -1,4 +1,3 @@
-```kotlin
 package com.oblivia
 
 import android.content.Context
@@ -26,4 +25,3 @@ abstract class TipDatabase : RoomDatabase() {
         }
     }
 }
-```
