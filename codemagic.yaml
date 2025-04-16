@@ -1,41 +1,33 @@
 workflows:
   flutter_build:
     name: Flutter Build
-    max_build_duration: 60 # Set a limit to build duration
+    max_build_duration: 60  # Optional: Limit the build duration (in minutes)
     environment:
+      flutter: stable  # Use stable Flutter SDK
       vars:
         - name: API_KEY
-          value: ${{ secrets.API_KEY }}  # Your OpenAI API key as an environment variable
+          value: ${{ secrets.API_KEY }}  # Secret OpenAI API key
         - name: KEYSTORE_PASSWORD
-          value: ${{ secrets.KEYSTORE_PASSWORD }}  # Password for keystore
+          value: ${{ secrets.KEYSTORE_PASSWORD }}  # Keystore password (secret)
         - name: KEY_PASSWORD
-          value: ${{ secrets.KEY_PASSWORD }}  # Password for the key inside the keystore
-
-    # Pre-build steps (dependencies, etc.)
+          value: ${{ secrets.KEY_PASSWORD }}  # Key password inside the keystore (secret)
+        - name: FLUTTER_BUILD_MODE
+          value: release  # Build mode (release or debug)
     scripts:
-      - flutter pub get
-      - flutter build apk --release # Builds the APK in release mode
+      # Pre-build commands to prepare the app
+      - flutter pub get  # Fetch dependencies
+      - flutter clean  # Clean the project to avoid caching issues
+      - flutter build apk --release  # Build APK in release mode
 
-    # Output artifacts: Define the APK file you want to generate
-    artifacts:
-      - build/app/outputs/flutter-apk/app-release.apk
-
-    # Android configuration for signing the APK
     android:
-      # Configuration for signing the APK using your keystore
       keystore:
-        reference: my_keystore  # Name of your uploaded keystore file in Codemagic
-        password: ${{ secrets.KEYSTORE_PASSWORD }}  # Keystore password
-        keyAlias: my_key_alias  # Alias of the key inside the keystore
-        keyPassword: ${{ secrets.KEY_PASSWORD }}  # Password for the key
+        reference: my_keystore  # Reference to your uploaded keystore on Codemagic
+        password: ${{ secrets.KEYSTORE_PASSWORD }}  # Keystore password from environment variables
+        keyAlias: my_key_alias  # Alias for your key inside the keystore
+        keyPassword: ${{ secrets.KEY_PASSWORD }}  # Key password for the alias inside the keystore
 
-# Flutter workflow for building the APK
-flutter:
-  sdk: stable
-  android:
-    # Keystore settings (Optional if not using Codemagic)
-    keystore:
-      reference: my_keystore  # Reference to the keystore in Codemagic
+    artifacts:
+      - build/app/outputs/flutter-apk/app-release.apk  # Path to the output APK file
 
-  environment:
-    flutter: stable
+    # Optional: add any other necessary sections like testing, deployment, etc.
+    # You can add testing sections here if needed.
