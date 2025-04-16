@@ -1,4 +1,3 @@
-```kotlin
 package com.oblivia
 
 import android.service.notification.NotificationListenerService
@@ -11,4 +10,3 @@ class NotificationListener : NotificationListenerService() {
         // Handle storing/analyzing this notification if needed
     }
 }
-```
