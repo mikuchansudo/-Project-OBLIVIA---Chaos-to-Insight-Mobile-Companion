@@ -1,4 +1,3 @@
-```kotlin
 package com.oblivia
 
 import androidx.room.Entity
@@ -9,4 +8,3 @@ data class Tip(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val content: String
 )
-```
