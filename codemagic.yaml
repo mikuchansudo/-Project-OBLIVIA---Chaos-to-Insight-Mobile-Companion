@@ -11,26 +11,19 @@ workflows:
           value: release  # Build mode (release or debug)
 
     # Flutter-specific build configuration
-    flutter:
+    android:
       build:
-        android:
-          signing:
-            keystore:
-              file: ${{ secrets.KEYSTORE_FILE }}  # Keystore file uploaded in Codemagic secrets
-              password: ${{ secrets.KEYSTORE_PASSWORD }}  # Keystore password
-              alias: ${{ secrets.KEY_ALIAS }}  # Alias for the key inside the keystore
-              key_password: ${{ secrets.KEY_PASSWORD }}  # Key password for the alias inside the keystore
-        ios:
-          # Optional: configure iOS build settings here if needed
-          build_mode: release
-          signing:
-            method: manual  # Or "automatic" for automatic signing
-
-    scripts:
-      # Pre-build commands to prepare the app
-      - flutter pub get  # Fetch dependencies
-      - flutter clean  # Clean the project to avoid caching issues
-      - flutter build apk --release  # Build APK in release mode
+        signing:
+          keystore:
+            file: ${{ secrets.KEYSTORE_FILE }}  # Keystore file uploaded in Codemagic secrets
+            password: ${{ secrets.KEYSTORE_PASSWORD }}  # Keystore password
+            alias: ${{ secrets.KEY_ALIAS }}  # Alias for the key inside the keystore
+            key_password: ${{ secrets.KEY_PASSWORD }}  # Key password for the alias inside the keystore
+      scripts:
+        # Pre-build commands to prepare the app
+        - flutter pub get  # Fetch dependencies
+        - flutter clean  # Clean the project to avoid caching issues
+        - flutter build apk --release  # Build APK in release mode
 
     artifacts:
       - build/app/outputs/flutter-apk/app-release.apk  # Path to the output APK file
