@@ -21,9 +21,9 @@ workflows:
 
     android:
       keystore:
-        reference: my_keystore  # Reference to your uploaded keystore on Codemagic
-        password: ${{ secrets.KEYSTORE_PASSWORD }}  # Keystore password from environment variables
-        keyAlias: my_key_alias  # Alias for your key inside the keystore
+        file: ${{ secrets.KEYSTORE_FILE }}  # Keystore file uploaded in Codemagic secrets
+        password: ${{ secrets.KEYSTORE_PASSWORD }}  # Keystore password
+        keyAlias: ${{ secrets.KEY_ALIAS }}  # Alias for the key inside the keystore
         keyPassword: ${{ secrets.KEY_PASSWORD }}  # Key password for the alias inside the keystore
 
     artifacts:
