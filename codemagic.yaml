@@ -1,23 +1,50 @@
 workflows:
-  flutter:
+  flutter_build:
     name: Flutter Build
-    max_build_duration: 60
-    branches:
-      only:
-        - main
+    max_build_duration: 60 # Set a limit to build duration
     environment:
+      # Environment variables (API Key, Keystore Password, and Key Password)
       vars:
         - name: API_KEY
-          value: ${{ secrets.API_KEY }} # API key as environment variable
+          value: ${{ secrets.API_KEY }}  # Your OpenAI API key as an environment variable
+        - name: KEYSTORE_PASSWORD
+          value: ${{ secrets.KEYSTORE_PASSWORD }}  # Password for keystore
+        - name: KEY_PASSWORD
+          value: ${{ secrets.KEY_PASSWORD }}  # Password for the key inside the keystore
+
+    # Pre-build steps (dependencies, etc.)
     scripts:
       - flutter pub get
-      - flutter build apk --release
+      - flutter build apk --release # Builds the APK in release mode
+
+    # Output artifacts: Define the APK file you want to generate
     artifacts:
       - build/app/outputs/flutter-apk/app-release.apk
 
+    # Android configuration for signing the APK
     android:
+      # Configuration for signing the APK using your keystore
       keystore:
-        reference: my_keystore  # Name of your uploaded keystore
-        password: ${{ secrets.KEYSTORE_PASSWORD }} # Keystore password (uploaded as secret in Codemagic)
-        keyAlias: my_key_alias  # The alias you used when creating the keystore
-        keyPassword: ${{ secrets.KEY_PASSWORD }} # The key password (uploaded as secret in Codemagic)
+        reference: my_keystore  # Name of your uploaded keystore file in Codemagic
+        password: ${{ secrets.KEYSTORE_PASSWORD }}  # Keystore password
+        keyAlias: my_key_alias  # Alias of the key inside the keystore
+        keyPassword: ${{ secrets.KEY_PASSWORD }}  # Password for the key
+
+    # Optional: Post-build actions, like notifications or additional processes
+    post_process:
+      - send_notification  # Example post-processing action (optional)
+
+# Flutter workflow for building the APK
+flutter:
+  android:
+    # Keystore settings (Optional if not using Codemagic)
+    keystore:
+      reference: my_keystore  # Reference to the keystore in Codemagic
+
+  # Default environment settings (Optional section)
+  environment:
+    flutter: stable
+    sdk: latest
+    flutter_channels:
+      - stable
+    version: latest
