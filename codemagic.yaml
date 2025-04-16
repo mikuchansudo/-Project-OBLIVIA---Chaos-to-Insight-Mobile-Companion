@@ -6,30 +6,24 @@ workflows:
     environment:
       flutter: stable
       java: openjdk11
-    # This is where we define the steps
-    steps:
-      - title: Install Dependencies
+      vars:
+        # Define your environment variables for secure keys here
+        API_KEY: "your-api-key"
+        KEYSTORE_FILE: "/path/to/your/keystore/file"
+        KEYSTORE_PASSWORD: "your-keystore-password"
+        KEY_ALIAS: "your-key-alias"
+        KEY_PASSWORD: "your-key-password"
+    scripts:
+      # This is where we define the steps
+      - name: Install Dependencies
         script: |
           flutter pub get
           
-      - title: Build APK
+      - name: Build APK
         script: |
           flutter build apk --release
-
-      - title: Upload APK
+          
+      - name: Upload APK
         script: |
           cp build/app/outputs/flutter-apk/app-release.apk $CM_BUILD_DIR/app-release.apk
           curl -F "file=@$CM_BUILD_DIR/app-release.apk" https://your-upload-url.com
-
-    # Define your environment variables for secure keys
-    environment_variables:
-      - name: API_KEY
-        value: "your-api-key"
-      - name: KEYSTORE_FILE
-        value: "/path/to/your/keystore/file"
-      - name: KEYSTORE_PASSWORD
-        value: "your-keystore-password"
-      - name: KEY_ALIAS
-        value: "your-key-alias"
-      - name: KEY_PASSWORD
-        value: "your-key-password"
