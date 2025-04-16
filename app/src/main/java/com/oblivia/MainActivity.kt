@@ -1,4 +1,3 @@
-```kotlin
 package com.oblivia
 
 import android.os.Bundle
