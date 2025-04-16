@@ -11,13 +11,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Step 1: Checkout the code
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v2
         
       # Step 2: Set up JDK 11
       - name: Set up JDK
-        uses: actions/setup-java@master
+        uses: actions/setup-java@v2
         with:
           java-version: '11'
+          distribution: 'adopt'
           
       # Step 3: Make Gradle executable
       - name: Make Gradle executable
@@ -31,14 +32,12 @@ jobs:
         
       # Step 5: List files (for debugging)
       - name: List output files
-        run: find app/build/outputs -type f
+        run: find app/build/outputs -type f || echo "No output files found"
       
-      # Step 6: Create an artifact directory
-      - name: Create artifact directory
-        run: mkdir -p artifacts && cp app/build/outputs/apk/release/*.apk artifacts/
-      
-      # Step 7: Upload the APK using generic artifact upload
-      - uses: actions/upload-artifact@master
+      # Step 6: Upload using basic command line
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v2
         with:
-          name: app-release
-          path: artifacts
+          name: release-apk
+          path: app/build/outputs/apk/release/*.apk
+          if-no-files-found: warn
