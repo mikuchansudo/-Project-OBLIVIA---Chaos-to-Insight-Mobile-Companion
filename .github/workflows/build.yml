@@ -11,12 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Step 1: Checkout the code
-      - name: Checkout Code
-        uses: actions/checkout@v1
+      - uses: actions/checkout@master
         
       # Step 2: Set up JDK 11
-      - name: Set up JDK 11
-        uses: actions/setup-java@v1
+      - name: Set up JDK
+        uses: actions/setup-java@master
         with:
           java-version: '11'
           
@@ -30,9 +29,16 @@ jobs:
         env:
           API_KEY: ${{ secrets.API_KEY }}
         
-      # Step 5: Find and upload the APK
-      - name: Upload APK
-        uses: actions/upload-artifact@v1
+      # Step 5: List files (for debugging)
+      - name: List output files
+        run: find app/build/outputs -type f
+      
+      # Step 6: Create an artifact directory
+      - name: Create artifact directory
+        run: mkdir -p artifacts && cp app/build/outputs/apk/release/*.apk artifacts/
+      
+      # Step 7: Upload the APK using generic artifact upload
+      - uses: actions/upload-artifact@master
         with:
           name: app-release
-          path: app/build/outputs/apk/release/
+          path: artifacts
