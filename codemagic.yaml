@@ -1,4 +1,4 @@
-]workflows:
+workflows:
   flutter_build:
     name: Flutter Build
     max_build_duration: 60  # Optional: Limit the build duration (in minutes)
