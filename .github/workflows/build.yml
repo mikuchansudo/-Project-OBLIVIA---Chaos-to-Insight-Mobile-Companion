@@ -16,16 +16,14 @@ jobs:
           git clone https://github.com/${{ github.repository }}.git .
           git checkout ${{ github.ref_name }}
       
-      # Debug - check repository content
+      # Debug - show content 
       - name: Debug repository content
         run: |
           echo "=== Current directory structure ==="
           ls -la
-          echo "=== Looking for gradlew files ==="
-          find . -name "gradlew*"
-          echo "=== Looking for gradle wrapper ==="
-          find . -path "*/gradle/wrapper/*"
-          
+          echo "=== Gradle wrapper files ==="
+          ls -la ./gradle/wrapper/ || echo "No wrapper directory found"
+      
       # Setup Java manually
       - name: Set up JDK
         run: |
@@ -33,41 +31,44 @@ jobs:
           sudo apt-get install -y openjdk-11-jdk
           java -version
       
-      # Fix permissions for Gradle files
-      - name: Fix Gradle permissions
+      # Fix the gradle wrapper jar permissions
+      - name: Fix permissions
         run: |
-          # Find and fix permissions for any gradlew files
-          find . -name "gradlew" -exec chmod +x {} \;
-          # Fix permissions for gradle directory if it exists
-          if [ -d "./gradle" ]; then
-            chmod -R +rw ./gradle
+          # Make sure the gradlew script is executable
+          chmod +x ./gradlew || echo "No gradlew found"
+          
+          # Fix jar file permissions - jar should NOT be executable
+          if [ -f "./gradle/wrapper/gradle-wrapper.jar" ]; then
+            chmod 644 ./gradle/wrapper/gradle-wrapper.jar
           fi
+          
+          # Show permissions after fix
+          ls -la ./gradlew ./gradle/wrapper/ || echo "Files not found"
+      
+      # Try alternative approach if needed
+      - name: Create new wrapper if needed
+        if: failure()
+        run: |
+          # Install Gradle
+          sudo apt-get install -y gradle
+          
+          # Generate new wrapper
+          gradle wrapper
+          
+          # Set permissions correctly
+          chmod +x ./gradlew
+          chmod 644 ./gradle/wrapper/gradle-wrapper.jar
           
       # Build the APK with enhanced error handling
       - name: Build APK
         run: |
-          if [ -f "./gradlew" ]; then
-            chmod +x ./gradlew
-            ./gradlew assembleRelease --info
-          else
-            echo "ERROR: gradlew file not found!"
-            # Try to find alternative locations
-            GRADLEW_PATH=$(find . -name "gradlew" | head -n 1)
-            if [ -n "$GRADLEW_PATH" ]; then
-              echo "Found gradlew at: $GRADLEW_PATH"
-              chmod +x "$GRADLEW_PATH"
-              $GRADLEW_PATH assembleRelease --info
-            else
-              echo "No gradlew found in the repository"
-              exit 1
-            fi
-          fi
+          ./gradlew assembleRelease --info
         env:
           API_KEY: ${{ secrets.API_KEY }}
           
       # Debug - list all APK files
       - name: Find APK files
-        if: success() || failure() # Run this step even if the previous step fails
+        if: success() || failure()
         run: |
           echo "=== APK files ==="
           find . -name "*.apk" || echo "No APK files found"
