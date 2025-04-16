@@ -12,8 +12,6 @@ workflows:
 
     # Flutter-specific build configuration
     flutter:
-      channels:
-        - stable
       build:
         android:
           signing:
