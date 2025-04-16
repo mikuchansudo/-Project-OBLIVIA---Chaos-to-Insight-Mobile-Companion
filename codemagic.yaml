@@ -1,29 +1,23 @@
 workflows:
-  android-workflow:
-    name: Build Android APK
+  flutter:
+    name: Flutter Build
     max_build_duration: 60
+    branches:
+      only:
+        - main
     environment:
       vars:
-        OPENAI_API_KEY: Encrypted_API_Key_Goes_Here
-      android_signing:
-        - my_keystore
+        - name: API_KEY
+          value: ${{ secrets.API_KEY }} # API key as environment variable
     scripts:
-      - name: Set up Flutter
-        script: |
-          git clone https://github.com/flutter/flutter.git -b stable
-          export PATH="$PATH:`pwd`/flutter/bin"
-          flutter --version
-      - name: Install dependencies
-        script: |
-          cd android
-          ./gradlew dependencies
-      - name: Build APK
-        script: |
-          cd android
-          ./gradlew assembleDebug
+      - flutter pub get
+      - flutter build apk --release
     artifacts:
-      - android/app/build/outputs/**/*.apk
-    publishing:
-      email:
-        recipients:
-          - your_email@example.com
+      - build/app/outputs/flutter-apk/app-release.apk
+
+    android:
+      keystore:
+        reference: my_keystore  # Name of your uploaded keystore
+        password: ${{ secrets.KEYSTORE_PASSWORD }} # Keystore password (uploaded as secret in Codemagic)
+        keyAlias: my_key_alias  # The alias you used when creating the keystore
+        keyPassword: ${{ secrets.KEY_PASSWORD }} # The key password (uploaded as secret in Codemagic)
