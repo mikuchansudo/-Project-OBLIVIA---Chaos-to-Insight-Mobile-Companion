@@ -1,16 +1,15 @@
 workflows:
   flutter_build:
     name: Flutter Build
-    max_build_duration: 60 # Optional: Limit the build duration (in minutes)
+    max_build_duration: 60
     environment:
       flutter: stable  # Use stable Flutter SDK
       vars:
         - name: API_KEY
-          value: ${{ secrets.API_KEY }}  # Secret OpenAI API key
+          value: ${{ secrets.API_KEY }}  # Secret OpenAI API key for access
         - name: FLUTTER_BUILD_MODE
           value: release  # Build mode (release or debug)
 
-    # Directly define steps for building APK
     steps:
       - name: Install dependencies
         run: flutter pub get
@@ -19,11 +18,11 @@ workflows:
       - name: Build APK
         run: flutter build apk --release
 
-    # Now handle signing directly under the android section, no "flutter_build -> android"
+    # The keystore setup should be in the android section at the root level, not inside flutter_build
     android:
       signing:
         keystore:
-          file: ${{ secrets.KEYSTORE_FILE }}  # Keystore file uploaded in Codemagic secrets
+          file: ${{ secrets.KEYSTORE_FILE }}  # Keystore file uploaded as a secret in Codemagic
           password: ${{ secrets.KEYSTORE_PASSWORD }}  # Keystore password
           alias: ${{ secrets.KEY_ALIAS }}  # Alias for the key inside the keystore
           key_password: ${{ secrets.KEY_PASSWORD }}  # Key password for the alias inside the keystore
