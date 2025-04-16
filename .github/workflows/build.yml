@@ -16,13 +16,15 @@ jobs:
           git clone https://github.com/${{ github.repository }}.git .
           git checkout ${{ github.ref_name }}
       
-      # Debug - show content 
-      - name: Debug repository content
+      # Debug - examine current files
+      - name: Debug files
         run: |
-          echo "=== Current directory structure ==="
+          echo "=== Repository files ==="
           ls -la
-          echo "=== Gradle wrapper files ==="
-          ls -la ./gradle/wrapper/ || echo "No wrapper directory found"
+          echo "=== Gradle wrapper directory ==="
+          ls -la ./gradle/wrapper/ || echo "Wrapper directory not found"
+          echo "=== Examine gradlew script ==="
+          cat ./gradlew || echo "No gradlew file found"
       
       # Setup Java manually
       - name: Set up JDK
@@ -31,38 +33,25 @@ jobs:
           sudo apt-get install -y openjdk-11-jdk
           java -version
       
-      # Fix the gradle wrapper jar permissions
-      - name: Fix permissions
-        run: |
-          # Make sure the gradlew script is executable
-          chmod +x ./gradlew || echo "No gradlew found"
-          
-          # Fix jar file permissions - jar should NOT be executable
-          if [ -f "./gradle/wrapper/gradle-wrapper.jar" ]; then
-            chmod 644 ./gradle/wrapper/gradle-wrapper.jar
-          fi
-          
-          # Show permissions after fix
-          ls -la ./gradlew ./gradle/wrapper/ || echo "Files not found"
-      
-      # Try alternative approach if needed
-      - name: Create new wrapper if needed
-        if: failure()
+      # Create a new gradlew script that bypasses the jar issue
+      - name: Create new gradlew script
         run: |
           # Install Gradle
           sudo apt-get install -y gradle
           
-          # Generate new wrapper
-          gradle wrapper
+          # Create and use a new script that uses the system Gradle
+          echo '#!/bin/bash' > ./build-with-gradle.sh
+          echo 'gradle "$@"' >> ./build-with-gradle.sh
+          chmod +x ./build-with-gradle.sh
           
-          # Set permissions correctly
-          chmod +x ./gradlew
-          chmod 644 ./gradle/wrapper/gradle-wrapper.jar
-          
-      # Build the APK with enhanced error handling
+          # Display the script
+          echo "=== New build script ==="
+          cat ./build-with-gradle.sh
+      
+      # Build the APK with the new script
       - name: Build APK
         run: |
-          ./gradlew assembleRelease --info
+          ./build-with-gradle.sh assembleRelease --info
         env:
           API_KEY: ${{ secrets.API_KEY }}
           
