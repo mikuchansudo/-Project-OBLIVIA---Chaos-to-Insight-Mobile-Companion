@@ -1,4 +1,4 @@
-workflows:
+\workflows:
   flutter_build:
     name: Flutter Build
     max_build_duration: 60 # Optional: Limit the build duration (in minutes)
@@ -10,13 +10,9 @@ workflows:
         - name: FLUTTER_BUILD_MODE
           value: release  # Build mode (release or debug)
 
-    ios:
-      # Optional: If you need to build for iOS, configure here
-
+    # Android-specific configuration
     android:
-      # Android-specific configuration
       build:
-        # Run the following Flutter commands for Android build
         script:
           - flutter pub get  # Fetch dependencies
           - flutter clean  # Clean the project to avoid caching issues
