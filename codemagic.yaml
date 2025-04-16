@@ -1,37 +1,39 @@
 workflows:
-  flutter_build:
-    name: Flutter Build
-    max_build_duration: 60  # Maximum build time in minutes
-
-    # Environment configuration
+  android:
+    name: Android Workflow
+    max_build_duration: 60
+    instance_type: mac_mini
     environment:
-      flutter: stable  # Use stable version of Flutter SDK
-      vars:
-        - name: API_KEY
-          value: ${{ secrets.API_KEY }}  # OpenAI API key (replace with your secret)
-        - name: FLUTTER_BUILD_MODE
-          value: release  # Build mode (set to 'release' for production)
-    
-    # Steps to execute during the build process
-    scripts:
-      - name: Install dependencies
-        script: flutter pub get
-
-      - name: Clean project
-        script: flutter clean
-
-      - name: Build APK
-        script: flutter build apk --release  # Build the release APK
-
-    # Android keystore configuration for signing
-    android:
-      signing:
-        keystore:
-          file: ${{ secrets.KEYSTORE_FILE }}  # Keystore file (uploaded in secrets)
-          password: ${{ secrets.KEYSTORE_PASSWORD }}  # Keystore password
-          alias: ${{ secrets.KEY_ALIAS }}  # Keystore alias
-          key_password: ${{ secrets.KEY_PASSWORD }}  # Password for the key alias in the keystore
-
-    # Define output files (Artifacts) to save after the build completes
-    artifacts:
-      - build/app/outputs/flutter-apk/app-release.apk  # Path to the APK file
+      flutter: stable
+      node: latest
+      java: openjdk11
+    triggers:
+      - push
+      - pull_request
+    actions:
+      - title: Install Dependencies
+        script: |
+          # Install required dependencies
+          flutter pub get
+      - title: Build APK
+        script: |
+          # Build the APK using Flutter and Android
+          flutter build apk --release
+      - title: Upload APK
+        script: |
+          # Upload APK after building
+          cp build/app/outputs/flutter-apk/app-release.apk $CM_BUILD_DIR/app-release.apk
+          curl -F "file=@$CM_BUILD_DIR/app-release.apk" https://your-upload-url.com
+    environment_variables:
+      # Add environment variables for secure API key, keystore, etc.
+      # Store sensitive information like API keys, keystores, etc. as environment variables.
+      - name: API_KEY
+        value: "your-api-key"
+      - name: KEYSTORE_FILE
+        value: "/path/to/your/keystore/file"
+      - name: KEYSTORE_PASSWORD
+        value: "your-keystore-password"
+      - name: KEY_ALIAS
+        value: "your-key-alias"
+      - name: KEY_PASSWORD
+        value: "your-key-password"
