@@ -1,4 +1,4 @@
-\package com.oblivia
+package com.oblivia
 
 import android.Manifest
 import android.content.Context
