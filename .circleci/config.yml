@@ -1,28 +1,40 @@
 version: 2.1
 
-executors:
-  android-executor:
-    docker:
-      - image: cimg/android:2023.09
-    resource_class: medium
-    environment:
-      JAVA_HOME: /opt/java/openjdk
+orbs:
+  android: circleci/android@2.1.2
 
 jobs:
   build:
-    executor: android-executor
+    executor:
+      name: android/android-machine
+      resource-class: medium
+
     working_directory: ~/project
 
     steps:
       - checkout
 
       - run:
-          name: Set Gradle permissions
-          command: chmod +x ./gradlew
+          name: Set up JDK
+          command: |
+            sudo apt-get update
+            sudo apt-get install openjdk-17-jdk -y
+            export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+
+      - run:
+          name: Grant Permission to gradlew and gradle-wrapper.jar
+          command: |
+            chmod +x ./gradlew
+            chmod +x ./gradle/wrapper/gradle-wrapper.jar
 
       - run:
           name: Build APK
           command: ./gradlew assembleDebug
+
+      - persist_to_workspace:
+          root: app/build
+          paths:
+            - outputs/
 
       - store_artifacts:
           path: app/build/outputs/apk/debug/app-debug.apk
