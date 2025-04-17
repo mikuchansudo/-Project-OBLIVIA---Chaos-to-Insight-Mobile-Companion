@@ -10,11 +10,15 @@ jobs:
           name: Check Java version
           command: java -version
       - run:
-          name: Grant Permission to gradlew
-          command: chmod +x ./gradlew
+          name: Grant Permission to gradlew and wrapper
+          command: |
+            chmod +x ./gradlew
+            chmod 644 ./gradle/wrapper/gradle-wrapper.jar
       - run:
-          name: List available tasks
-          command: ./gradlew tasks || echo "Failed to list tasks"
+          name: Debug permissions
+          command: |
+            ls -la ./gradlew
+            ls -la ./gradle/wrapper/
       - run:
           name: Build APK
           command: ./gradlew assembleDebug || ./gradlew build
