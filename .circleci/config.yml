@@ -7,7 +7,7 @@ jobs:
   build:
     executor:
       name: android/android-machine
-      tag: 2023.09.1 # You can update this based on what CircleCI supports
+      resource-class: medium
     working_directory: ~/project
 
     steps:
@@ -21,10 +21,12 @@ jobs:
             export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 
       - run:
+          name: Grant Permission to gradlew
+          command: chmod +x ./gradlew
+
+      - run:
           name: Build APK
-          command: |
-            cd app
-            ./gradlew assembleDebug
+          command: ./gradlew assembleDebug
 
       - persist_to_workspace:
           root: app/build
