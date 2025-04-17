@@ -1,45 +1,36 @@
 version: 2.1
-
 orbs:
   android: circleci/android@2.1.2
-
 jobs:
   build:
     executor:
       name: android/android-machine
-      tag: "2023.09.1"  # You can try using a different tag if needed
-      resource-class: small  # Use 'small' for free-tier
+      tag: "2023.09.1"
+      resource-class: medium  # Changed from 'small' to 'medium'
     working_directory: ~/project
-
     steps:
       - checkout
-
       - run:
           name: Set up JDK
           command: |
             sudo apt-get update
             sudo apt-get install openjdk-17-jdk -y
             export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-
       - run:
           name: Grant Permission to gradlew and gradle-wrapper.jar
           command: |
             chmod +x ./gradlew
             chmod +x ./gradle/wrapper/gradle-wrapper.jar
-
       - run:
           name: Build APK
           command: ./gradlew assembleDebug
-
       - persist_to_workspace:
           root: app/build
           paths:
             - outputs/
-
       - store_artifacts:
           path: app/build/outputs/apk/debug/app-debug.apk
           destination: apk
-
 workflows:
   build_apk:
     jobs:
