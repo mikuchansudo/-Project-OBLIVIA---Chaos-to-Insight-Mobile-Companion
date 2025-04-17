@@ -8,6 +8,7 @@ jobs:
     executor:
       name: android/android-machine
       resource-class: medium
+      tag: 2023.09.1 # Required image tag for the machine executor
     working_directory: ~/project
 
     steps:
