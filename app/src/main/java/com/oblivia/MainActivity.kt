@@ -1,4 +1,4 @@
-\package com.oblivia
+package com.oblivia
 import android.content.Context
 import android.location.Location
 import android.os.Bundle
