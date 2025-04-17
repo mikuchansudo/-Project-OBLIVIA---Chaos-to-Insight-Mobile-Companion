@@ -22,6 +22,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -47,20 +48,19 @@ class MainActivity : AppCompatActivity() {
                 sendChaosToServer(clipboardText)
             }
             
-            // Check if Google Play Services is available before requesting location
+            // Always continue app initialization first
+            continueAppInitialization()
+            
+            // Then check if Google Play Services is available before requesting location
             if (checkPlayServices()) {
                 // Check and request location permissions if needed
                 if (hasLocationPermission()) {
                     getLocationWithTimeout()
                 } else {
                     requestLocationPermission()
-                    // Continue with app initialization even without location
-                    continueAppInitialization()
                 }
             } else {
-                // Continue without location if Play Services is unavailable
-                Log.d(TAG, "Google Play Services unavailable, continuing without location")
-                continueAppInitialization()
+                Log.d(TAG, "Google Play Services unavailable, skipping location")
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error in onCreate", e)
@@ -112,9 +112,8 @@ class MainActivity : AppCompatActivity() {
                 // Permission granted, get location
                 getLocationWithTimeout()
             } else {
-                // Permission denied, continue without location
+                // Permission denied, we already called continueAppInitialization in onCreate
                 Log.d(TAG, "Location permission denied")
-                continueAppInitialization()
             }
         }
     }
@@ -123,7 +122,7 @@ class MainActivity : AppCompatActivity() {
         val locationHandler = Handler(Looper.getMainLooper())
         val timeoutRunnable = Runnable {
             Log.d(TAG, "Location request timed out")
-            continueAppInitialization() // Continue with app initialization
+            // No need to call continueAppInitialization() again as it was called in onCreate
         }
         
         locationHandler.postDelayed(timeoutRunnable, LOCATION_TIMEOUT)
@@ -135,12 +134,12 @@ class MainActivity : AppCompatActivity() {
                     val locationText = "Lat: ${location.latitude}, Lon: ${location.longitude}"
                     sendChaosToServer(locationText)
                 }
-                continueAppInitialization() // Continue with app initialization
+                // No need to call continueAppInitialization() again as it was called in onCreate
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error requesting location", e)
             locationHandler.removeCallbacks(timeoutRunnable) // Cancel timeout
-            continueAppInitialization() // Continue with app initialization
+            // No need to call continueAppInitialization() again as it was called in onCreate
         }
     }
     
@@ -179,27 +178,27 @@ class MainActivity : AppCompatActivity() {
     
     fun sendChaosToServer(chaos: String) {
         try {
-            val client = OkHttpClient()
+            val client = OkHttpClient.Builder()
+                .connectTimeout(10, TimeUnit.SECONDS)
+                .readTimeout(10, TimeUnit.SECONDS)
+                .build()
+                
             val json = JSONObject().put("text", chaos)
             Log.d(TAG, "Sending to server: $chaos")
             
-            // Updated to use the new OkHttp API
             val body = json.toString().toRequestBody("application/json".toMediaType())
             val request = Request.Builder()
-                .url("https://oblivia.onrender.com/analyze")  // Replace with your backend URL
+                .url("https://oblivia.onrender.com/analyze")
                 .post(body)
                 .build()
+            
+            // Network request is independent of app initialization
+            // We've already called continueAppInitialization() in onCreate
             
             client.newCall(request).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
                     Log.e(TAG, "Network request failed", e)
-                    runOnUiThread {
-                        try {
-                            findViewById<TextView>(R.id.tipTextView).text = "Connection error"
-                        } catch (e: Exception) {
-                            Log.e(TAG, "Error updating UI on failure", e)
-                        }
-                    }
+                    updateUIWithMessage("Connection error")
                 }
                 
                 override fun onResponse(call: Call, response: Response) {
@@ -210,38 +209,30 @@ class MainActivity : AppCompatActivity() {
                         if (!responseString.isNullOrEmpty()) {
                             val jsonObject = JSONObject(responseString)
                             val tip = jsonObject.optString("tip", "No tip available")
-                            
-                            runOnUiThread {
-                                try {
-                                    findViewById<TextView>(R.id.tipTextView).text = tip
-                                } catch (e: Exception) {
-                                    Log.e(TAG, "Error updating UI with tip", e)
-                                }
-                            }
+                            updateUIWithMessage(tip)
                         } else {
                             Log.d(TAG, "Empty response from server")
-                            runOnUiThread {
-                                try {
-                                    findViewById<TextView>(R.id.tipTextView).text = "No tip available"
-                                } catch (e: Exception) {
-                                    Log.e(TAG, "Error updating UI for empty response", e)
-                                }
-                            }
+                            updateUIWithMessage("No tip available")
                         }
                     } catch (e: Exception) {
                         Log.e(TAG, "Error processing response", e)
-                        runOnUiThread {
-                            try {
-                                findViewById<TextView>(R.id.tipTextView).text = "Error processing response"
-                            } catch (e: Exception) {
-                                Log.e(TAG, "Error updating UI on exception", e)
-                            }
-                        }
+                        updateUIWithMessage("Error processing response")
                     }
                 }
             })
         } catch (e: Exception) {
             Log.e(TAG, "Error in sendChaosToServer", e)
+            // No need to call continueAppInitialization() again as it was called in onCreate
+        }
+    }
+    
+    private fun updateUIWithMessage(message: String) {
+        runOnUiThread {
+            try {
+                findViewById<TextView>(R.id.tipTextView).text = message
+            } catch (e: Exception) {
+                Log.e(TAG, "Error updating UI with message", e)
+            }
         }
     }
     
@@ -256,7 +247,11 @@ class MainActivity : AppCompatActivity() {
                     ?: run {
                         // If not in MainActivity context, create a standalone request
                         Log.d(TAG, "Sending data from non-MainActivity context")
-                        val client = OkHttpClient()
+                        val client = OkHttpClient.Builder()
+                            .connectTimeout(10, TimeUnit.SECONDS)
+                            .readTimeout(10, TimeUnit.SECONDS)
+                            .build()
+                            
                         val json = JSONObject().put("text", chaos)
                         val body = json.toString().toRequestBody("application/json".toMediaType())
                         val request = Request.Builder()
