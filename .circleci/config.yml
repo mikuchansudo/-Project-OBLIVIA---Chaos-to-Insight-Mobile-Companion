@@ -7,8 +7,8 @@ jobs:
   build:
     executor:
       name: android/android-machine
-      tag: "2023.09.1"  # Use a valid tag here, adjust if necessary
-      resource-class: medium
+      tag: "2023.09.1"  # You can try using a different tag if needed
+      resource-class: small  # Use 'small' for free-tier
     working_directory: ~/project
 
     steps:
