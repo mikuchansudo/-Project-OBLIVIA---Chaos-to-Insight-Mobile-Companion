@@ -8,12 +8,12 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.Fragment
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -67,7 +67,7 @@ class MainActivity : AppCompatActivity() {
             
             // Add a button click listener to navigate to the main content
             findViewById<Button>(R.id.btnContinue).setOnClickListener {
-                navigateToMainContent()
+                showMainContent()
             }
             
         } catch (e: Exception) {
@@ -163,7 +163,7 @@ class MainActivity : AppCompatActivity() {
                 Handler(Looper.getMainLooper()).postDelayed({
                     // Only auto-navigate if we're still on this screen (user hasn't pressed button)
                     if (!isFinishing) {
-                        navigateToMainContent()
+                        showMainContent()
                     }
                 }, 3000) // 3 second delay
                 
@@ -173,25 +173,21 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
-    private fun navigateToMainContent() {
-        // Navigate to your main content - replace this with your actual navigation logic
+    private fun showMainContent() {
         try {
-            // Example: Load a fragment into a container
-            val fragmentContainer = findViewById<android.view.View>(R.id.fragment_container)
-            if (fragmentContainer != null) {
-                loadFragment(JournalFragment())
-            } else {
-                Log.d(TAG, "Fragment container not found, skipping navigation")
-            }
+            // Hide welcome elements
+            findViewById<View>(R.id.welcomeContainer).visibility = View.GONE
+            
+            // Show main content elements
+            findViewById<View>(R.id.mainContent).visibility = View.VISIBLE
+            
+            // Update the main content
+            findViewById<TextView>(R.id.mainTextView).text = "You're now using OBLIVIA"
+            
+            Log.d(TAG, "Main content is now visible")
         } catch (e: Exception) {
-            Log.e(TAG, "Error during navigation", e)
+            Log.e(TAG, "Error showing main content", e)
         }
-    }
-    
-    private fun loadFragment(fragment: Fragment) {
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, fragment)
-            .commit()
     }
     
     // Function to get the current location
