@@ -8,10 +8,12 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -62,6 +64,12 @@ class MainActivity : AppCompatActivity() {
             } else {
                 Log.d(TAG, "Google Play Services unavailable, skipping location")
             }
+            
+            // Add a button click listener to navigate to the main content
+            findViewById<Button>(R.id.btnContinue).setOnClickListener {
+                navigateToMainContent()
+            }
+            
         } catch (e: Exception) {
             Log.e(TAG, "Error in onCreate", e)
             // Continue with app initialization even if there's an error
@@ -148,12 +156,42 @@ class MainActivity : AppCompatActivity() {
         runOnUiThread {
             try {
                 findViewById<TextView>(R.id.tipTextView).text = "Welcome to Oblivia"
-                // If you have a loading indicator, hide it here
-                // If you need to navigate to another screen, do it here
+                // Make the continue button visible
+                findViewById<Button>(R.id.btnContinue).isEnabled = true
+                
+                // Optionally, auto-navigate after a delay
+                Handler(Looper.getMainLooper()).postDelayed({
+                    // Only auto-navigate if we're still on this screen (user hasn't pressed button)
+                    if (!isFinishing) {
+                        navigateToMainContent()
+                    }
+                }, 3000) // 3 second delay
+                
             } catch (e: Exception) {
                 Log.e(TAG, "Error updating UI in continueAppInitialization", e)
             }
         }
+    }
+    
+    private fun navigateToMainContent() {
+        // Navigate to your main content - replace this with your actual navigation logic
+        try {
+            // Example: Load a fragment into a container
+            val fragmentContainer = findViewById<android.view.View>(R.id.fragment_container)
+            if (fragmentContainer != null) {
+                loadFragment(JournalFragment())
+            } else {
+                Log.d(TAG, "Fragment container not found, skipping navigation")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error during navigation", e)
+        }
+    }
+    
+    private fun loadFragment(fragment: Fragment) {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, fragment)
+            .commit()
     }
     
     // Function to get the current location
